@@ -25,21 +25,23 @@ export function login(hint?: string): Promise<Account & { missing: string[] }> {
 
   return new Promise((resolve, reject) => {
     let server: Server;
+    let redirect = '';
+    let finished = false;
     const timer = setTimeout(() => {
       server.close();
       reject(new Error('Timed out after 5 minutes.'));
     }, 5 * 60_000);
     const done = (err: Error | null, acc?: Account & { missing: string[] }) => {
+      finished = true;
       clearTimeout(timer);
       setTimeout(() => server.close(), 200);
       err ? reject(err) : resolve(acc!);
     };
 
     server = createServer(async (req, res) => {
-      const port = (server.address() as AddressInfo).port;
-      const redirect = `http://127.0.0.1:${port}/callback`;
+      // Browsers also ask for /favicon.ico, sometimes after the login finished: answer, ignore.
       const u = new URL(req.url ?? '/', redirect);
-      if (u.pathname !== '/callback') return res.writeHead(404).end();
+      if (u.pathname !== '/callback' || finished) return res.writeHead(404).end();
       const reply = (msg: string) => res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' }).end(page(msg));
 
       if (u.searchParams.get('state') !== state) {
@@ -85,11 +87,11 @@ export function login(hint?: string): Promise<Account & { missing: string[] }> {
     });
 
     server.listen(0, '127.0.0.1', () => {
-      const port = (server.address() as AddressInfo).port;
+      redirect = `http://127.0.0.1:${(server.address() as AddressInfo).port}/callback`;
       const url = new URL('https://accounts.google.com/o/oauth2/v2/auth');
       url.search = new URLSearchParams({
         client_id,
-        redirect_uri: `http://127.0.0.1:${port}/callback`,
+        redirect_uri: redirect,
         response_type: 'code',
         scope: SCOPES.join(' '),
         access_type: 'offline',
