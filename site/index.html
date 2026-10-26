@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>multi-mail-mcp: one MCP server for all your Gmail accounts</title>
+<meta name="description" content="Let Claude read every Gmail account you have, draft from the right address, tidy your inboxes and check every calendar. It never sends and never deletes. Open source, runs on your machine.">
+<meta property="og:title" content="multi-mail-mcp">
+<meta property="og:description" content="One MCP server for all your Gmail accounts. Reads, drafts, sorts. Never sends, never deletes.">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #fbfbfa;
+  --surface: #ffffff;
+  --text: #1c1c1a;
+  --text-2: #5f5e5a;
+  --text-3: #8f8e89;
+  --line: #e7e6e2;
+  --code-bg: #f3f2ef;
+  --accent: #2f6fed;
+  --ok: #1f8a4c;
+  --no: #c2412d;
+  --sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141413;
+    --surface: #1a1a19;
+    --text: #ecebe7;
+    --text-2: #a8a7a1;
+    --text-3: #75746f;
+    --line: #2a2a28;
+    --code-bg: #1e1e1d;
+    --accent: #7aa2ff;
+    --ok: #4cc27f;
+    --no: #f07a63;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 400 16px/1.65 var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration-color: var(--text-3); text-underline-offset: 3px; }
+a:hover { text-decoration-color: var(--text); }
+.wrap { max-width: 720px; margin: 0 auto; padding: 0 20px; }
+
+header.top {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 22px 0; font-size: 14px;
+}
+.brand { font-family: var(--mono); font-weight: 500; text-decoration: none; display: flex; align-items: center; gap: 10px; }
+.brand svg { width: 20px; height: 20px; }
+.top nav { display: flex; gap: 22px; color: var(--text-2); }
+.top nav a { text-decoration: none; }
+.top nav a:hover { color: var(--text); }
+
+.hero { padding: 64px 0 40px; }
+h1 {
+  font-size: clamp(32px, 6vw, 44px); line-height: 1.12; letter-spacing: -0.025em;
+  font-weight: 600; margin: 0 0 18px; max-width: 16ch;
+}
+.lede { font-size: 18px; color: var(--text-2); margin: 0 0 28px; max-width: 58ch; }
+.lede strong { color: var(--text); font-weight: 500; }
+
+.term {
+  position: relative; background: var(--code-bg); border: 1px solid var(--line); border-radius: 10px;
+  font: 400 14px/1.7 var(--mono); padding: 16px 18px; overflow-x: auto; white-space: pre;
+}
+.term:has(.copy) { padding-right: 76px; }
+.term .p { color: var(--text-3); user-select: none; }
+.term .c { color: var(--text-3); }
+.copy {
+  position: absolute; top: 10px; right: 10px; font: 500 12px var(--sans); color: var(--text-2);
+  background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 4px 9px; cursor: pointer;
+}
+.copy:hover { color: var(--text); }
+.links { display: flex; gap: 20px; margin-top: 18px; font-size: 15px; }
+.links a { font-weight: 500; }
+
+section { padding: 44px 0; border-top: 1px solid var(--line); }
+h2 { font-size: 13px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-3); margin: 0 0 18px; }
+h3 { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; margin: 0 0 12px; }
+p { margin: 0 0 14px; }
+.muted { color: var(--text-2); }
+
+.ask { list-style: none; padding: 0; margin: 0; }
+.ask li { padding: 10px 0; border-bottom: 1px dashed var(--line); }
+.ask li:last-child { border-bottom: 0; }
+.ask q { quotes: none; }
+.ask li::before { content: "> "; font-family: var(--mono); color: var(--text-3); }
+
+.out { white-space: pre; font: 400 13px/1.65 var(--mono); }
+.out b { font-weight: 500; color: var(--text); }
+.out .d { color: var(--text-3); }
+.out .a { color: var(--accent); }
+
+figure { margin: 0; }
+figure .scroll { overflow-x: auto; }
+figure svg { width: 100%; min-width: 560px; height: auto; display: block; }
+figcaption { font-size: 14px; color: var(--text-2); margin-top: 12px; }
+
+table { width: 100%; border-collapse: collapse; font-size: 15px; }
+th, td { text-align: left; padding: 10px 12px 10px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 500; color: var(--text-3); font-size: 13px; }
+td:first-child { font-family: var(--mono); font-size: 13.5px; white-space: nowrap; }
+
+.rules { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; }
+.rules li { display: grid; grid-template-columns: 14px 1fr; gap: 12px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 9px; background: var(--ok); }
+.dot.no { background: var(--no); }
+.rules strong { font-weight: 600; }
+
+ol.steps { padding: 0; margin: 0; list-style: none; counter-reset: s; display: grid; gap: 26px; }
+ol.steps > li { counter-increment: s; display: grid; grid-template-columns: 28px 1fr; gap: 10px; }
+ol.steps > li::before { content: counter(s); font: 500 13px/28px var(--mono); color: var(--text-3); }
+ol.steps h3 { font-size: 17px; margin: 2px 0 6px; }
+ol.steps .term { margin-top: 10px; }
+
+details { border-bottom: 1px solid var(--line); padding: 14px 0; }
+details:first-of-type { border-top: 1px solid var(--line); }
+summary { cursor: pointer; font-weight: 500; list-style: none; display: flex; justify-content: space-between; gap: 16px; }
+summary::-webkit-details-marker { display: none; }
+summary::after { content: "+"; font-family: var(--mono); color: var(--text-3); }
+details[open] summary::after { content: "\2212"; }
+details p { color: var(--text-2); margin: 10px 0 0; }
+
+code { font-family: var(--mono); font-size: 0.9em; background: var(--code-bg); border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; }
+
+footer { border-top: 1px solid var(--line); padding: 28px 0 48px; font-size: 14px; color: var(--text-3); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+@media (max-width: 560px) {
+  .hero { padding: 40px 0 28px; }
+  .top nav a.hide-sm { display: none; }
+  td:first-child { white-space: normal; }
+  .term { font-size: 13px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <a class="brand" href="/" aria-label="multi-mail-mcp home">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="7" width="15" height="11" rx="1.5"/><path d="M3.5 7.8 10.5 13l7-5.2"/><path d="M6 4.5h14.5V15"/></svg>
+    multi-mail-mcp
+  </a>
+  <nav>
+    <a class="hide-sm" href="#how">How it works</a>
+    <a href="#setup">Setup</a>
+    <a href="https://github.com/taimiyanis/multi-mail-mcp">GitHub</a>
+  </nav>
+</header>
+
+<main>
+<div class="hero">
+  <h1>One MCP server for all your Gmail accounts.</h1>
+  <p class="lede">Claude reads every inbox you have, drafts replies from the right address, tidies your mail and checks every calendar. <strong>It never sends and never deletes.</strong> Open source, and it runs on your machine.</p>
+  <div class="term" id="install"><button class="copy" data-copy="git clone https://github.com/taimiyanis/multi-mail-mcp.git &amp;&amp; cd multi-mail-mcp &amp;&amp; npm install &amp;&amp; npm run setup">Copy</button><span class="p">$ </span>git clone https://github.com/taimiyanis/multi-mail-mcp.git
+<span class="p">$ </span>cd multi-mail-mcp &amp;&amp; npm install
+<span class="p">$ </span>npm run setup</div>
+  <div class="links"><a href="#setup">Read the setup</a><a href="https://github.com/taimiyanis/multi-mail-mcp">View on GitHub</a></div>
+</div>
+
+<section>
+  <h2>What you ask</h2>
+  <ul class="ask">
+    <li><q>What came in today across my inboxes?</q></li>
+    <li><q>Summarise the thread with the venue about Thursday and draft a reply from my work address.</q></li>
+    <li><q>Who have I been waiting on for more than three days?</q></li>
+    <li><q>Archive the newsletters and label the client emails.</q> <span class="muted">You see the plan first.</span></li>
+    <li><q>Am I free Thursday afternoon, on any calendar?</q></li>
+  </ul>
+</section>
+
+<section>
+  <h2>A morning with /mail-triage</h2>
+  <p class="muted">One command in Claude Code. It reads what is new in every account, finds the replies you owe and the answers you are waiting for, and leaves drafts in each account, written the way you write.</p>
+  <div class="term out"><span class="d">&gt; /mail-triage</span>
+
+<b>Mail triage</b>, since yesterday 18:40
+claire@northwind.io   2 need you · 4 FYI · 11 noise
+claire.m@gmail.com    0 need you · 2 FYI · 23 noise
+
+<b>NEEDS YOU</b>
+- [northwind] Daniel Ortiz: contract renewal, call this week   <span class="a">draft ready</span>
+- [northwind] Finance: Q3 expense report due Friday            <span class="d">no draft</span>
+
+<b>FOLLOW-UPS</b>
+- Owe a reply, 4 days: Sara Lind, "Speaker slot in March?"     <span class="a">draft ready</span>
+- Waiting, 5 working days: Marc (venue), signed quote          <span class="a">nudge ready</span>
+
+<b>SORT</b>  archive 34 (newsletters x14, LinkedIn x9, receipts x6, ...)
+      label Clients 3 · To reply 3 · Waiting 1
+      <span class="d">Sort like this? </span><b>yes</b>
+
+4 drafts in your Drafts folders. Nothing was sent.</div>
+</section>
+
+<section id="how">
+  <h2>How it works</h2>
+  <figure>
+    <div class="scroll"><svg viewBox="0 0 680 230" role="img" aria-labelledby="dtitle">
+      <title id="dtitle">Your Gmail accounts connect to multi-mail-mcp on your machine, which Claude uses through MCP.</title>
+      <g font-family="JetBrains Mono, monospace" font-size="12" fill="currentColor">
+        <g stroke="var(--line)" fill="var(--surface)">
+          <rect x="1" y="20" width="190" height="44" rx="8"/>
+          <rect x="1" y="93" width="190" height="44" rx="8"/>
+          <rect x="1" y="166" width="190" height="44" rx="8"/>
+          <rect x="250" y="56" width="190" height="118" rx="10" stroke="var(--text-3)"/>
+          <rect x="499" y="93" width="180" height="44" rx="8"/>
+        </g>
+        <text x="20" y="47">work@company.com</text>
+        <text x="20" y="120">you@school.edu</text>
+        <text x="20" y="193">you@gmail.com</text>
+        <text x="270" y="90" font-weight="500">multi-mail-mcp</text>
+        <text x="270" y="116" fill="var(--text-2)">read · draft · sort</text>
+        <text x="270" y="136" fill="var(--text-2)">calendars (read)</text>
+        <text x="270" y="158" fill="var(--text-3)">tokens: ~/.config</text>
+        <text x="518" y="120">Claude</text>
+        <g stroke="var(--text-3)" stroke-width="1.2" fill="none">
+          <path d="M191 42 H220 V96 H250"/>
+          <path d="M191 115 H250"/>
+          <path d="M191 188 H220 V134 H250"/>
+          <path d="M440 115 H499"/>
+        </g>
+        <text x="456" y="106" font-size="11" fill="var(--text-3)">MCP</text>
+        <text x="200" y="14" font-size="11" fill="var(--text-3)">Gmail + Calendar APIs</text>
+      </g>
+    </svg></div>
+    <figcaption>The server runs on your computer when Claude needs it. It talks to Google with your own login key and to Claude over MCP. There is no server in between.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <h2>Tools</h2>
+  <table>
+    <thead><tr><th>Tool</th><th>Does</th></tr></thead>
+    <tbody>
+      <tr><td>search_mail</td><td>Gmail search syntax, across every account or one</td></tr>
+      <tr><td>read_thread</td><td>A whole thread as plain text, with attachment names</td></tr>
+      <tr><td>create_draft</td><td>A reply in the thread, or a new email, saved as a draft in the chosen account</td></tr>
+      <tr><td>label_threads</td><td>Apply or remove labels; missing labels are created</td></tr>
+      <tr><td>archive_threads</td><td>Out of the inbox, still in All Mail, back on any reply</td></tr>
+      <tr><td>mark_read</td><td>Read or unread</td></tr>
+      <tr><td>list_events</td><td>Every calendar of every account, duplicates merged</td></tr>
+      <tr><td>list_accounts, list_labels</td><td>What is connected, and each account's labels</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>Safety, by design</h2>
+  <ul class="rules">
+    <li><span class="dot no"></span><div><strong>No send, no delete.</strong> <span class="muted">Those tools do not exist. Every email leaves from your own Gmail, after you have read it.</span></div></li>
+    <li><span class="dot"></span><div><strong>Everything is reversible.</strong> <span class="muted">Archived mail stays in All Mail and returns on a reply. Labels come off. Sorting asks first until you tell it not to.</span></div></li>
+    <li><span class="dot"></span><div><strong>Your key, your machine.</strong> <span class="muted">You create your own Google login key. Tokens stay in <code>~/.config/multi-mail-mcp</code>, readable by your user only. No third party ever sees your mail.</span></div></li>
+    <li><span class="dot"></span><div><strong>Calendars are read-only.</strong> <span class="muted">It can tell you when you are free. It cannot book anything.</span></div></li>
+  </ul>
+</section>
+
+<section id="setup">
+  <h2>Setup</h2>
+  <p class="muted">Node.js 20 or newer, a Google account, and Claude Code (Claude Desktop and Cursor work too). About 15 minutes, once.</p>
+  <ol class="steps">
+    <li><div>
+      <h3>Install</h3>
+      <div class="term"><span class="p">$ </span>git clone https://github.com/taimiyanis/multi-mail-mcp.git
+<span class="p">$ </span>cd multi-mail-mcp &amp;&amp; npm install</div>
+    </div></li>
+    <li><div>
+      <h3>Create your Google login key</h3>
+      <p class="muted">Run <code>npm run setup</code>. It walks you through five screens in Google Cloud, with a link for each: create a project, turn on Gmail and Calendar, set up the sign-in screen, publish it, and create a <em>Desktop app</em> client. Then you paste the ID and secret.</p>
+    </div></li>
+    <li><div>
+      <h3>Connect your accounts</h3>
+      <p class="muted">Type each address. A browser tab opens for each one. Google warns that the app is not verified: it is your own private app, so choose <em>Advanced</em>, then <em>Go to your app</em>, and tick every box.</p>
+    </div></li>
+    <li><div>
+      <h3>Connect Claude</h3>
+      <p class="muted">Setup registers the server in Claude Code for all your projects and installs the <code>/mail-triage</code> skill. Open a new session and ask what came in today.</p>
+    </div></li>
+  </ol>
+</section>
+
+<section>
+  <h2>Questions</h2>
+  <details><summary>Why do I need my own Google project?</summary><p>Reading Gmail is a restricted permission. An app that many people share needs a paid, yearly security audit from Google. A private app used only by you does not, and your mail never touches anyone else's server.</p></details>
+  <details><summary>Google says "Access blocked: admin_policy_enforced".</summary><p>That organisation's Google admin blocks outside apps. Only the admin can allow it. Your other accounts still work.</p></details>
+  <details><summary>Why does the consent screen mention sending?</summary><p>Archiving and labelling need Gmail's "modify" permission, and Google describes that permission broadly. The server exposes no send tool, and the code is open for you to check.</p></details>
+  <details><summary>Does it work with Outlook or iCloud?</summary><p>Not yet. Gmail and Google Workspace accounts only.</p></details>
+  <details><summary>How is it different from other Gmail MCP servers?</summary><p>Several let you switch between accounts. This one is built for doing your email with an assistant: drafts land in the right account and thread, sorting is safe and reversible, calendars are included, and the triage skill learns how you write.</p></details>
+</section>
+</main>
+
+<footer>
+  <span>MIT licence. Made by <a href="https://github.com/taimiyanis">Yanis Taimi</a>.</span>
+  <a href="https://github.com/taimiyanis/multi-mail-mcp">github.com/taimiyanis/multi-mail-mcp</a>
+</footer>
+</div>
+<script>
+document.querySelectorAll('.copy').forEach(function (b) {
+  b.addEventListener('click', function () {
+    navigator.clipboard.writeText(b.dataset.copy).then(function () {
+      b.textContent = 'Copied';
+      setTimeout(function () { b.textContent = 'Copy'; }, 1600);
+    });
+  });
+});
+</script>
+</body>
+</html>

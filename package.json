@@ -1,0 +1,39 @@
+{
+  "name": "multi-mail-mcp",
+  "version": "0.1.0",
+  "description": "One MCP server for all your Gmail accounts: read, draft from the right address, sort safely, read every calendar. Never sends, never deletes.",
+  "license": "MIT",
+  "author": "Yanis Taimi",
+  "repository": "github:taimiyanis/multi-mail-mcp",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "mcp",
+    "gmail",
+    "claude",
+    "model-context-protocol",
+    "email",
+    "google-calendar"
+  ],
+  "scripts": {
+    "setup": "tsx src/cli.ts setup",
+    "add": "tsx src/cli.ts add",
+    "remove": "tsx src/cli.ts remove",
+    "accounts": "tsx src/cli.ts accounts",
+    "mcp": "tsx src/mcp.ts",
+    "typecheck": "NODE_OPTIONS=--max-old-space-size=8192 tsc --noEmit"
+  },
+  "dependencies": {
+    "@googleapis/calendar": "^20.1.0",
+    "@googleapis/gmail": "^22.0.2",
+    "@modelcontextprotocol/sdk": "^1.15.1",
+    "tsx": "^4.23.15",
+    "zod": "^3.25.67"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "typescript": "^7.0.2"
+  }
+}
