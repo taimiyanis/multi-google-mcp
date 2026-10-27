@@ -4,7 +4,10 @@
   "description": "One MCP server for all your Google accounts: Gmail, Calendar, Drive, Docs, Sheets and Slides. Never sends, never deletes.",
   "license": "MIT",
   "author": "Yanis Taimi",
-  "repository": "github:taimiyanis/multi-google-mcp",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/taimiyanis/multi-google-mcp.git"
+  },
   "type": "module",
   "engines": {
     "node": ">=20"
