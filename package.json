@@ -1,10 +1,10 @@
 {
-  "name": "multi-mail-mcp",
-  "version": "0.1.0",
-  "description": "One MCP server for all your Gmail accounts: read, draft from the right address, sort safely, read every calendar. Never sends, never deletes.",
+  "name": "multi-google-mcp",
+  "version": "0.2.0",
+  "description": "One MCP server for all your Google accounts: Gmail, Calendar, Drive, Docs, Sheets and Slides. Never sends, never deletes.",
   "license": "MIT",
   "author": "Yanis Taimi",
-  "repository": "github:taimiyanis/multi-mail-mcp",
+  "repository": "github:taimiyanis/multi-google-mcp",
   "type": "module",
   "engines": {
     "node": ">=20"
@@ -12,10 +12,12 @@
   "keywords": [
     "mcp",
     "gmail",
+    "google-drive",
+    "google-docs",
+    "google-sheets",
+    "google-calendar",
     "claude",
-    "model-context-protocol",
-    "email",
-    "google-calendar"
+    "model-context-protocol"
   ],
   "scripts": {
     "setup": "tsx src/cli.ts setup",

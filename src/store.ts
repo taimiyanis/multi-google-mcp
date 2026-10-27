@@ -2,8 +2,8 @@ import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'n
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
-// Everything secret lives outside the repo, in ~/.config/multi-mail-mcp (mode 700, files 600).
-export const DIR = process.env.MULTI_MAIL_MCP_HOME ?? join(homedir(), '.config', 'multi-mail-mcp');
+// Everything secret lives outside the repo, in ~/.config/multi-google-mcp (mode 700, files 600).
+export const DIR = process.env.MULTI_GOOGLE_MCP_HOME ?? join(homedir(), '.config', 'multi-google-mcp');
 const CLIENT = join(DIR, 'client.json');
 const ACCOUNTS = join(DIR, 'accounts.json');
 
@@ -11,6 +11,8 @@ export const SCOPES = [
   'https://www.googleapis.com/auth/gmail.modify',
   'https://www.googleapis.com/auth/gmail.compose',
   'https://www.googleapis.com/auth/calendar.readonly',
+  'https://www.googleapis.com/auth/calendar.events',
+  'https://www.googleapis.com/auth/drive',
   'https://www.googleapis.com/auth/userinfo.email',
   'openid',
 ];
@@ -27,7 +29,7 @@ function writePrivate(path: string, data: unknown) {
 export const hasClient = () => existsSync(CLIENT);
 
 export function readClient(): Client {
-  if (!hasClient()) throw new Error('No Google OAuth client yet. Run `npm run setup` in the multi-mail-mcp folder.');
+  if (!hasClient()) throw new Error('No Google OAuth client yet. Run `npm run setup` in the multi-google-mcp folder.');
   return JSON.parse(readFileSync(CLIENT, 'utf8'));
 }
 

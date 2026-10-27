@@ -37,13 +37,17 @@ async function askHidden(q: string): Promise<string> {
 const GOOGLE_STEPS = [
   [
     'Create a Google Cloud project',
-    'Open https://console.cloud.google.com/projectcreate , name it "multi-mail-mcp" (any name works) and click Create.',
+    'Open https://console.cloud.google.com/projectcreate , name it "multi-google-mcp" (any name works) and click Create.',
   ],
   [
-    'Turn on Gmail and Calendar',
-    'With that project selected, open each link and click Enable:\n' +
+    'Turn on the Google APIs',
+    'With that project selected, open each link and click Enable (six of them):\n' +
       '   https://console.cloud.google.com/apis/library/gmail.googleapis.com\n' +
-      '   https://console.cloud.google.com/apis/library/calendar-json.googleapis.com',
+      '   https://console.cloud.google.com/apis/library/calendar-json.googleapis.com\n' +
+      '   https://console.cloud.google.com/apis/library/drive.googleapis.com\n' +
+      '   https://console.cloud.google.com/apis/library/docs.googleapis.com\n' +
+      '   https://console.cloud.google.com/apis/library/sheets.googleapis.com\n' +
+      '   https://console.cloud.google.com/apis/library/slides.googleapis.com',
   ],
   [
     'Set up the sign-in screen',
@@ -106,7 +110,7 @@ async function setupClaude() {
   console.log(`\n${bold('Part 3 of 3: connect Claude')}`);
   const tsx = join(ROOT, 'node_modules', '.bin', 'tsx');
   const mcp = join(ROOT, 'src', 'mcp.ts');
-  const cmd = ['mcp', 'add', 'multi-mail', '-s', 'user', '--', tsx, mcp];
+  const cmd = ['mcp', 'add', 'multi-google', '-s', 'user', '--', tsx, mcp];
   let hasClaude = true;
   try {
     execFileSync('claude', ['--version'], { stdio: 'ignore' });
@@ -126,7 +130,7 @@ async function setupClaude() {
     cpSync(join(ROOT, 'skills', 'mail-triage'), target, { recursive: true });
     console.log(`Installed in ${target}`);
   }
-  console.log(`\n${bold('Done.')} Open a new Claude Code session and ask: "what came in today across my inboxes?"`);
+  console.log(`\n${bold('Done.')} Open a new Claude Code session and ask: "what came in today across my inboxes?"\nor "find the budget sheet in any of my Drives and summarise it."`);
 }
 
 const [cmd, arg] = process.argv.slice(2);

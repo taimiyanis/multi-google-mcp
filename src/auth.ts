@@ -9,7 +9,7 @@ import type { AddressInfo } from 'node:net';
 // except the calls to Google itself.
 
 const page = (msg: string) =>
-  `<!doctype html><meta charset="utf-8"><title>multi-mail-mcp</title>` +
+  `<!doctype html><meta charset="utf-8"><title>multi-google-mcp</title>` +
   `<body style="font:16px/1.5 system-ui;max-width:520px;margin:15vh auto;padding:0 16px">${msg}</body>`;
 
 function openBrowser(url: string) {

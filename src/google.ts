@@ -17,6 +17,58 @@ export function calendarFor(acc: Account): calendar_v3.Calendar {
   return calendar({ version: 'v3', auth });
 }
 
+// Drive, Docs, Sheets and Slides are called over plain REST with the account's access token, which
+// keeps the dependencies to the two packages above.
+const restAuth = new Map<string, InstanceType<typeof calendarAuth.OAuth2>>();
+
+type ApiInit = {
+  method?: string;
+  json?: unknown;
+  upload?: { body: string; contentType: string };
+  text?: boolean;
+  bytes?: boolean; // returns base64
+};
+
+/** Calls a Google REST API as the account. Returns parsed JSON, text with { text: true }, base64 with { bytes: true }. */
+export async function api<T = any>(acc: Account, url: string, init: ApiInit = {}): Promise<T> {
+  let auth = restAuth.get(acc.email);
+  if (!auth) {
+    const { client_id, client_secret } = readClient();
+    auth = new calendarAuth.OAuth2(client_id, client_secret);
+    auth.setCredentials({ refresh_token: acc.refresh_token });
+    restAuth.set(acc.email, auth);
+  }
+  const a = auth;
+  return withRetry(async () => {
+    const { token } = await a.getAccessToken();
+    const headers: Record<string, string> = { authorization: `Bearer ${token}` };
+    let body: string | undefined;
+    if (init.json !== undefined) {
+      headers['content-type'] = 'application/json';
+      body = JSON.stringify(init.json);
+    } else if (init.upload) {
+      headers['content-type'] = init.upload.contentType;
+      body = init.upload.body;
+    }
+    const res = await fetch(url, { method: init.method ?? (body ? 'POST' : 'GET'), headers, body });
+    if (!res.ok) {
+      const raw = await res.text();
+      let message = raw;
+      try {
+        message = JSON.parse(raw).error?.message ?? raw;
+      } catch {}
+      if (/insufficient.*(scope|permission)/i.test(message)) {
+        message = `${acc.email} has not granted this permission yet. Run: npm run add -- ${acc.email}`;
+      } else if (/has not been used in project|is disabled/i.test(message)) {
+        message = `That Google API is not turned on in your Google Cloud project (see the README, Setup). ${message}`;
+      }
+      throw Object.assign(new Error(message), { code: res.status });
+    }
+    if (init.bytes) return Buffer.from(await res.arrayBuffer()).toString('base64') as T;
+    return (init.text ? await res.text() : await res.json()) as T;
+  });
+}
+
 /** Retries Google calls hit by the per-user rate limit. */
 export async function withRetry<T>(fn: () => Promise<T>, tries = 5): Promise<T> {
   for (let i = 0; ; i++) {
