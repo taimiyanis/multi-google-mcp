@@ -29,7 +29,7 @@ function writePrivate(path: string, data: unknown) {
 export const hasClient = () => existsSync(CLIENT);
 
 export function readClient(): Client {
-  if (!hasClient()) throw new Error('No Google OAuth client yet. Run `npm run setup` in the multi-google-mcp folder.');
+  if (!hasClient()) throw new Error('No Google OAuth client yet. Run: npx multi-google-mcp setup');
   return JSON.parse(readFileSync(CLIENT, 'utf8'));
 }
 

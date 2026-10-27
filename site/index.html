@@ -124,6 +124,8 @@ ol.steps > li { counter-increment: s; display: grid; grid-template-columns: 28px
 ol.steps > li::before { content: counter(s); font: 500 13px/28px var(--mono); color: var(--text-3); }
 ol.steps h3 { font-size: 17px; margin: 2px 0 6px; }
 ol.steps .term { margin-top: 10px; }
+img.shot { display: block; max-width: 100%; height: auto; margin-top: 12px; border: 1px solid var(--line); border-radius: 8px; }
+h3.part { font-size: 15px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-3); font-weight: 500; margin: 36px 0 8px; }
 
 details { border-bottom: 1px solid var(--line); padding: 14px 0; }
 details:first-of-type { border-top: 1px solid var(--line); }
@@ -164,9 +166,7 @@ footer { border-top: 1px solid var(--line); padding: 28px 0 48px; font-size: 14p
 <div class="hero">
   <h1>One MCP server for all your Google accounts.</h1>
   <p class="lede">Claude reads every inbox you have and drafts from the right address, finds and reads files in every Drive, writes Docs and Sheets, and manages every calendar. <strong>It never sends and never deletes.</strong> Open source, and it runs on your machine.</p>
-  <div class="term" id="install"><button class="copy" data-copy="git clone https://github.com/taimiyanis/multi-google-mcp.git &amp;&amp; cd multi-google-mcp &amp;&amp; npm install &amp;&amp; npm run setup">Copy</button><span class="p">$ </span>git clone https://github.com/taimiyanis/multi-google-mcp.git
-<span class="p">$ </span>cd multi-google-mcp &amp;&amp; npm install
-<span class="p">$ </span>npm run setup</div>
+  <div class="term" id="install"><button class="copy" data-copy="npx multi-google-mcp setup">Copy</button><span class="p">$ </span>npx multi-google-mcp setup</div>
   <div class="links"><a href="#setup">Read the setup</a><a href="https://github.com/taimiyanis/multi-google-mcp">View on GitHub</a></div>
 </div>
 
@@ -276,26 +276,47 @@ claire.m@gmail.com    0 need you · 2 FYI · 23 noise
 
 <section id="setup">
   <h2>Setup</h2>
-  <p class="muted">Node.js 20 or newer, a Google account, and Claude Code (Claude Desktop and Cursor work too). About 15 minutes, once.</p>
+  <p class="muted">Node.js 20 or newer, a Google account, and Claude Code (Claude Desktop and Cursor work too). About 15 minutes, once. The wizard waits for you at every step.</p>
+  <div class="term"><button class="copy" data-copy="npx multi-google-mcp setup">Copy</button><span class="p">$ </span>npx multi-google-mcp setup</div>
+  <h3 class="part">Your own Google login key</h3>
+  <p class="muted">Each user makes their own key, so your data never goes through anyone else. These are the six screens you will see.</p>
   <ol class="steps">
     <li><div>
-      <h3>Install</h3>
-      <div class="term"><span class="p">$ </span>git clone https://github.com/taimiyanis/multi-google-mcp.git
-<span class="p">$ </span>cd multi-google-mcp &amp;&amp; npm install</div>
+      <h3>Create a project</h3>
+      <p class="muted">Open <a href="https://console.cloud.google.com/projectcreate">New Project</a>, name it <code>multi-google-mcp</code>, click <strong>Create</strong>, then <strong>Select project</strong> in the notification.</p>
+      <img class="shot" src="/setup/1-project.png" alt="New Project form with the name multi-google-mcp" width="540" height="364" loading="lazy">
     </div></li>
     <li><div>
-      <h3>Create your Google login key</h3>
-      <p class="muted">Run <code>npm run setup</code>. It walks you through five screens in Google Cloud, with a link for each: create a project, turn on six Google APIs, set up the sign-in screen, publish it, and create a <em>Desktop app</em> client. Then you paste the ID and secret.</p>
+      <h3>Turn on the six APIs, with one link</h3>
+      <p class="muted">Open <a href="https://console.cloud.google.com/flows/enableapi?apiid=gmail.googleapis.com,calendar-json.googleapis.com,drive.googleapis.com,docs.googleapis.com,sheets.googleapis.com,slides.googleapis.com">this link</a>, check the top bar shows your project, then <strong>Next</strong> and <strong>Enable</strong>.</p>
+      <img class="shot" src="/setup/2-enable.png" alt="Enable access to APIs, listing Gmail, Calendar, Drive, Docs, Sheets and Slides" width="800" height="330" loading="lazy">
     </div></li>
     <li><div>
-      <h3>Connect your accounts</h3>
-      <p class="muted">Type each address. A browser tab opens for each one. Google warns that the app is not verified: it is your own private app, so choose <em>Advanced</em>, then <em>Go to your app</em>, and tick every box.</p>
+      <h3>Set up the sign-in screen</h3>
+      <p class="muted">Open <a href="https://console.cloud.google.com/auth/overview">Google Auth Platform</a> and click <strong>Get started</strong>. Any app name without "Google", "Gmail" or "Inbox". Audience: <strong>External</strong>. Tick the policy box, <strong>Continue</strong>, <strong>Create</strong>.</p>
+      <img class="shot" src="/setup/3-signin.png" alt="Project configuration, App Information step" width="530" height="550" loading="lazy">
     </div></li>
     <li><div>
-      <h3>Connect Claude</h3>
-      <p class="muted">Setup registers the server in Claude Code for all your projects and installs the <code>/mail-triage</code> skill. Open a new session and ask what came in today.</p>
+      <h3>Add the two links Google requires</h3>
+      <p class="muted">Open <a href="https://console.cloud.google.com/auth/branding">Branding</a> and fill in, then <strong>Save</strong>: home page <code>https://multi-google-mcp-tau.vercel.app</code>, privacy policy <code>https://multi-google-mcp-tau.vercel.app/privacy</code>, authorized domain <code>multi-google-mcp-tau.vercel.app</code>.</p>
+      <img class="shot" src="/setup/4-links.png" alt="App domain section filled in" width="530" height="530" loading="lazy">
+    </div></li>
+    <li><div>
+      <h3>Publish the app</h3>
+      <p class="muted">Open <a href="https://console.cloud.google.com/auth/audience">Audience</a>, click <strong>Publish app</strong>, then <strong>Confirm</strong>. Ignore the note about verification: the app is only for you. Without publishing, Google signs you out every 7 days.</p>
+      <img class="shot" src="/setup/8-confirm.png" alt="Push to production dialog" width="520" height="232" loading="lazy">
+    </div></li>
+    <li><div>
+      <h3>Create the login key</h3>
+      <p class="muted">Open <a href="https://console.cloud.google.com/auth/clients/create">Create client</a>, choose <strong>Desktop app</strong>, click <strong>Create</strong>, then <strong>Download JSON</strong>. Google shows the secret only once. The wizard finds the file by itself.</p>
+      <img class="shot" src="/setup/6-download.png" alt="OAuth client created dialog, with Download JSON outlined" width="470" height="587" loading="lazy">
     </div></li>
   </ol>
+  <h3 class="part">Your accounts</h3>
+  <p class="muted">Type each address and a browser tab opens. Google warns that it has not verified the app: it is your own app, so click <strong>Advanced</strong>, then <strong>Go to (your app name)</strong>, and tick every box. The wizard then checks Gmail, Drive and Calendar on each account.</p>
+  <img class="shot" src="/setup/9-warning.png" alt="Google hasn't verified this app, with Advanced opened" width="600" height="440" loading="lazy">
+  <h3 class="part">Claude</h3>
+  <p class="muted">Setup registers the server in Claude Code for all your projects and installs the <code>/mail-triage</code> skill. Open a new session and ask what came in today.</p>
 </section>
 
 <section>
@@ -310,7 +331,7 @@ claire.m@gmail.com    0 need you · 2 FYI · 23 noise
 </main>
 
 <footer>
-  <span>MIT licence. Made by <a href="https://github.com/taimiyanis">Yanis Taimi</a>.</span>
+  <span>MIT licence. Made by <a href="https://github.com/taimiyanis">Yanis Taimi</a>. <a href="/privacy">Privacy</a>.</span>
   <a href="https://github.com/taimiyanis/multi-google-mcp">github.com/taimiyanis/multi-google-mcp</a>
 </footer>
 </div>

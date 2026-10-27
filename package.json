@@ -1,6 +1,6 @@
 {
   "name": "multi-google-mcp",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "One MCP server for all your Google accounts: Gmail, Calendar, Drive, Docs, Sheets and Slides. Never sends, never deletes.",
   "license": "MIT",
   "author": "Yanis Taimi",
@@ -20,22 +20,35 @@
     "model-context-protocol"
   ],
   "scripts": {
-    "setup": "tsx src/cli.ts setup",
-    "add": "tsx src/cli.ts add",
-    "remove": "tsx src/cli.ts remove",
-    "accounts": "tsx src/cli.ts accounts",
-    "mcp": "tsx src/mcp.ts",
+    "build": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && esbuild src/bin.ts --bundle --splitting --format=esm --platform=node --target=node20 --packages=external --outdir=dist --banner:js='#!/usr/bin/env node'",
+    "prepare": "npm run build",
+    "setup": "node dist/bin.js setup",
+    "add": "node dist/bin.js add",
+    "remove": "node dist/bin.js remove",
+    "accounts": "node dist/bin.js accounts",
+    "check": "node dist/bin.js check",
+    "mcp": "node dist/bin.js mcp",
     "typecheck": "NODE_OPTIONS=--max-old-space-size=8192 tsc --noEmit"
   },
   "dependencies": {
     "@googleapis/calendar": "^20.1.0",
     "@googleapis/gmail": "^22.0.2",
     "@modelcontextprotocol/sdk": "^1.15.1",
-    "tsx": "^4.23.15",
     "zod": "^3.25.67"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",
-    "typescript": "^7.0.2"
-  }
+    "typescript": "^7.0.2",
+    "esbuild": "^0.25.0"
+  },
+  "bin": {
+    "multi-google-mcp": "dist/bin.js"
+  },
+  "files": [
+    "dist",
+    "skills",
+    "README.md",
+    "LICENSE"
+  ],
+  "homepage": "https://multi-google-mcp-tau.vercel.app"
 }

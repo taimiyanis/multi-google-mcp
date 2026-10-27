@@ -80,4 +80,4 @@ and apply only what they approve. When `on`, apply and report. "Sort without ask
 "ask before sorting" sets it `off`.
 
 Finally write `Last run: YYYY-MM-DD HH:MM` (local time) to `triage.md`, keeping the other lines.
-If an account fails (expired login), report it with the fix (`npm run add -- <email>`) and carry on.
+If an account fails (expired login), report it with the fix (`npx multi-google-mcp add <email>`) and carry on.

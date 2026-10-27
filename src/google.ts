@@ -58,7 +58,7 @@ export async function api<T = any>(acc: Account, url: string, init: ApiInit = {}
         message = JSON.parse(raw).error?.message ?? raw;
       } catch {}
       if (/insufficient.*(scope|permission)/i.test(message)) {
-        message = `${acc.email} has not granted this permission yet. Run: npm run add -- ${acc.email}`;
+        message = `${acc.email} has not granted this permission yet. Run: npx multi-google-mcp add ${acc.email}`;
       } else if (/has not been used in project|is disabled/i.test(message)) {
         message = `That Google API is not turned on in your Google Cloud project (see the README, Setup). ${message}`;
       }
